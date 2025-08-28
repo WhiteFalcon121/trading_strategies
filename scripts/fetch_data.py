@@ -1,13 +1,10 @@
 import yfinance as yf
 import pandas as pd
+from config import TICKERS, START_DATE, END_DATE, RAW_DATA_SAVE_PATH
 
-start_date = '2015-01-01'
-end_date = '2025-01-01'
+# tickers = ['AAPL', 'MSFT', 'GOOGL']
 
-tickers = ['AAPL', 'MSFT', 'GOOGL']
+data = yf.download(TICKERS, start=START_DATE, end=END_DATE, interval='1d')['Close'] # only want close prices
+data.to_csv(RAW_DATA_SAVE_PATH)
 
-save_path = '../data/raw/stock_data.csv'
-data = yf.download(tickers, start=start_date, end=end_date, interval='1d')['Close'] # only want close prices
-data.to_csv(save_path)
-
-print(f"Fetched data for tickers: {tickers} \n Saved to {save_path}")
+print(f"Fetched data for tickers: {TICKERS} \n Saved to {RAW_DATA_SAVE_PATH}")
