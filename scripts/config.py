@@ -15,7 +15,7 @@ TICKERS = [
 ]
 
 # Data parameters
-START_DATE = '2015-01-01'
-END_DATE = '2025-01-01'
+DATA_START_DATE = '2015-01-01'
+DATA_END_DATE = '2025-01-01'
 
 RAW_DATA_SAVE_PATH = '../data/raw/stock_data.csv'
