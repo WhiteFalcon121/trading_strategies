@@ -2,21 +2,21 @@ import pandas as pd
 from src.portfolio import Portfolio
 from scripts.config import DAYS_12M, DAYS_3M, DAYS_1M
 
-def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_dates: list):
+def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_freq: int) -> None:
     '''
     Implements relative momentum strategy.
     
     Args:
         prices (pd.DataFrame): DataFrame with dates as index and tickers as columns, containing closing price data.
         portfolio (Portfolio): Portfolio object to manage cash and holdings.
-        rebalance_dates (list): List of dates (as strings) on which to rebalance the portfolio.
+        rebalance_freq (int): Frequency of rebalancing in days.
     Returns:
         None: The function modifies the portfolio in place.
     '''
     # precompute returns
     returns = [prices.pct_change(periods=DAYS_12M), prices.pct_change(periods=DAYS_3M), prices.pct_change(periods=DAYS_1M)]
 
-    # rebalance_dates = (returns[0].index[DAYS_12M::DAYS_1M]) # rebalancing dates (every month after first 12 months) ] now a parameter
+    rebalance_dates = (returns[0].index[DAYS_12M::rebalance_freq]) # rebalancing dates (every month after first 12 months) ] now a parameter
 
     # for each date, rank stocks based on returns
     for date in rebalance_dates:
@@ -28,13 +28,14 @@ def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_date
             latest_returns = period.loc[date] # to get specific date's returns
             latest_mean = latest_returns.mean() # mean of last row
             latest_std = latest_returns.std() # std of last row
-            latest_z_scores.append((latest_returns - latest_mean) / latest_std)
+            latest_z = (latest_returns - latest_mean) / latest_std
+            latest_z = latest_z.dropna() # drop NaNs (extra safe)
+            latest_z_scores.append(latest_z)
         momentum_scores = (0.5 * latest_z_scores[0]) + (0.3 * latest_z_scores[1]) + (0.2 * latest_z_scores[2])
 
         ranked_stocks = (momentum_scores.sort_values(ascending=False)[:10]).index.tolist() # top 10 momentum stocks
 
         # trading logic (adjust incrementally)
-        stocks_to_buy_num = 0
 
         # sell stocks not in ranked_stocks
         for ticker in portfolio.tickers_list():
@@ -43,18 +44,22 @@ def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_date
                 curr_price = prices.loc[date, ticker]
                 quantity = portfolio.holdings[ticker]
                 portfolio.sell(ticker, curr_price, quantity)
-                stocks_to_buy_num += 1
+                print(f"Sold all holdings of {ticker} at {curr_price}")
 
-        cash_per_stock = portfolio.cash // stocks_to_buy_num if stocks_to_buy_num > 0 else 0 # equal weighting
-        
+        stocks_to_buy = [ticker for ticker in ranked_stocks if ticker not in portfolio.holdings]
+        cash_per_stock = (portfolio.cash // len(stocks_to_buy)) if stocks_to_buy else 0 # equal weighting
+        if cash_per_stock == 0:
+            print("No cash available to buy new stocks.")
+            continue
+
         # buy ranked_stocks
-        for ticker in ranked_stocks:
-            if ticker not in portfolio.holdings:
-                # buy logic
-                curr_price = prices.loc[date, ticker]
-                quantity = cash_per_stock // curr_price
-                if quantity > 0:
-                    portfolio.buy(ticker, curr_price, quantity)
-                    portfolio.holdings[ticker] += quantity
-                else:
-                    print(f"Not enough cash to buy any shares of {ticker} at {curr_price}")
+        for ticker in stocks_to_buy:
+            # buy logic
+            curr_price = prices.loc[date, ticker] # need to make this THE NEXT DAY
+            quantity = cash_per_stock // curr_price
+            if quantity > 0:
+                portfolio.buy(ticker, curr_price, quantity)
+            else:
+                print(f"Not enough cash to buy {quantity} shares of {ticker} at {curr_price}")
+
+        # print(portfolio.tickers_list())
