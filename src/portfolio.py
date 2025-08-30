@@ -74,5 +74,17 @@ class Portfolio():
         if self.value_history.empty:
             print("No value history to calculate volatility.")
             return None
-        returns = self.value_history.pct_change().dropna()
-        return returns.std() * ((DAYS_12M/DAYS_1M) ** 0.5)
+        else:
+            returns = self.value_history.pct_change().dropna()
+            return returns.std() * ((DAYS_12M/DAYS_1M) ** 0.5)
+    
+    def sharpe(self, risk_free_rate: float = 0.02):
+        vol = self.volatility()
+        if vol is None or vol == 0:
+            print("Volatility is zero or undefined, cannot calculate Sharpe ratio.")
+            return None
+        else:
+            returns = self.value_history.pct_change().dropna()
+            excess_return = returns.mean() * (DAYS_12M/DAYS_1M) - risk_free_rate
+            return excess_return / vol
+        

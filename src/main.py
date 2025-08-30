@@ -17,6 +17,7 @@ def main():
     print(f"Final portfolio value: {portfolio.get_current_value(prices.iloc[-1].to_dict())}")
     print(f"CAGR: {portfolio.cagr()}")
     print(f"Volatility: {portfolio.volatility()}")
+    print(f"Sharpe: {portfolio.sharpe()}")
 
 if __name__ == "__main__":
     main()
