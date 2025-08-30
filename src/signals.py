@@ -67,35 +67,33 @@ def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_freq
         '''
 
         # trading logic (full rebalance) - less path-dependent so more academically accurate
-        # sell all stocks
+        
+        # sell all stocks at today's close
         for ticker in portfolio.tickers_list():
             curr_price = prices.loc[date, ticker]
-            ''' use next day's price to sell
-            next_day_index = prices.index.get_loc(date) + 1
-            if next_day_index >= len(prices.index):
-                print(f"No next day data available for {date}. Skipping sell for {ticker}.")
-                continue
-            else:
-                next_day = prices.index[next_day_index]
-                curr_price = prices.loc[next_day, ticker]
-            '''
             quantity = portfolio.holdings[ticker]
             portfolio.sell(ticker, curr_price, quantity)
             print(f"Sold all holdings of {ticker} at {curr_price}")
         
-        # buy ranked_stocks
+        # buy ranked_stocks at next day's close
         cash_per_stock = (portfolio.cash // len(ranked_stocks)) if ranked_stocks else 0 # equal weighting
         if cash_per_stock == 0:
             print("No cash available to buy new stocks.")
             continue
         else:
+            next_day_index = prices.index.get_loc(date) + 1
+            if next_day_index >= len(prices.index):
+                print(f"No next day data available for {date}. Skipping buy.")
+                continue
             for ticker in ranked_stocks:
-                curr_price = prices.loc[date, ticker] # need to make this THE NEXT DAY
-                quantity = cash_per_stock // curr_price
+                # use next day's price to sell
+                next_day = prices.index[next_day_index]
+                next_day_price = prices.loc[next_day, ticker]
+                quantity = cash_per_stock // next_day_price
                 if quantity > 0:
-                    portfolio.buy(ticker, curr_price, quantity)
+                    portfolio.buy(ticker, next_day_price, quantity)
                 else:
-                    print(f"Not enough cash to buy {quantity} shares of {ticker} at {curr_price}")
+                    print(f"Not enough cash to buy {quantity} shares of {ticker} at {next_day_price}")
 
         # save portfolio value
-        portfolio.save_value(prices.loc[date].to_dict())
+        portfolio.save_value(prices.loc[next_day].to_dict())
