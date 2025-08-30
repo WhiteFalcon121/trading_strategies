@@ -96,3 +96,6 @@ def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_freq
                     portfolio.buy(ticker, curr_price, quantity)
                 else:
                     print(f"Not enough cash to buy {quantity} shares of {ticker} at {curr_price}")
+
+        # save portfolio value
+        portfolio.save_value(prices.loc[date].to_dict())

@@ -18,6 +18,7 @@ class Portfolio():
         self.cash = initial_cash
         self.holdings = defaultdict(int)  # ticker -> quantity
         self.trade_cost = transaction_cost  # 0.1% transaction cost
+        self.value_history = []  # to track portfolio value over time
 
     def tickers_list(self):
         return list(self.holdings.keys()) # maybe more efficient to store list of tickers, add and remove as needed
@@ -28,6 +29,10 @@ class Portfolio():
             if ticker in prices:
                 total_value += prices[ticker] * quantity
         return total_value    
+
+    def save_value(self, prices: dict):
+        current_value = self.get_current_value(prices)
+        self.value_history.append(current_value)
 
     def sell(self, ticker: str, curr_price: float, quantity: int):
         if ticker in self.holdings and self.holdings[ticker] >= quantity:
