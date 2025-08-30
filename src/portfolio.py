@@ -29,7 +29,7 @@ class Portfolio():
         total_value = self.cash
         for ticker, quantity in self.holdings.items():
             if ticker in prices:
-                total_value += prices[ticker] * quantity
+                total_value += prices[ticker] * quantity # uses current price (as of latest date)
         return total_value
 
     def save_value(self, date: str, prices: dict):

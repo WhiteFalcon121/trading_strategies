@@ -2,6 +2,7 @@ from src.portfolio import Portfolio
 from src.signals import momentum_strategy
 import pandas as pd
 from scripts.config import DAYS_1M
+import matplotlib.pyplot as plt
 
 def main():
     initial_cash = 100000  # Starting with $100,000
@@ -13,11 +14,19 @@ def main():
     prices.set_index('Date', inplace=True)
 
     momentum_strategy(prices, portfolio, DAYS_1M)
-    # print("Portfolio value history: ", portfolio.value_history)
+    print("\n")
     print(f"Final portfolio value: {portfolio.get_current_value(prices.iloc[-1].to_dict())}")
-    print(f"CAGR: {portfolio.cagr()}")
-    print(f"Volatility: {portfolio.volatility()}")
-    print(f"Sharpe: {portfolio.sharpe()}")
+    # print(f"CAGR: {portfolio.cagr()}")
+    # print(f"Volatility: {portfolio.volatility()}")
+    # print(f"Sharpe: {portfolio.sharpe()}")
+    portfolio_stats = pd.Series([portfolio.cagr(), portfolio.volatility(), portfolio.sharpe()], index=['CAGR', 'Volatility', 'Sharpe'])
+    portfolio_stats.to_csv('results/portfolio_stats.csv')
+    portfolio.value_history.plot(title="Portfolio Value Over Time")
+    portfolio.value_history.to_csv('data/processed/portfolio_value_history.csv')
+    plt.xlabel("Date")
+    plt.ylabel("Portfolio Value ($)")
+    plt.grid()
+    plt.show()
 
 if __name__ == "__main__":
     main()
