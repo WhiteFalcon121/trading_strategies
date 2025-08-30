@@ -1,5 +1,6 @@
 from collections import defaultdict
 import pandas as pd
+from scripts.config import DAYS_1M, DAYS_12M
 
 class Portfolio():
     '''
@@ -68,3 +69,10 @@ class Portfolio():
         start_value, end_value = self.value_history.iloc[0], self.value_history.iloc[-1]
         num_years = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days / 365.25
         return (end_value / start_value) ** (1 / num_years) - 1
+    
+    def volatility(self):
+        if self.value_history.empty:
+            print("No value history to calculate volatility.")
+            return None
+        returns = self.value_history.pct_change().dropna()
+        return returns.std() * ((DAYS_12M/DAYS_1M) ** 0.5)
