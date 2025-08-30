@@ -1,4 +1,5 @@
 from collections import defaultdict
+import pandas as pd
 
 class Portfolio():
     '''
@@ -18,7 +19,7 @@ class Portfolio():
         self.cash = initial_cash
         self.holdings = defaultdict(int)  # ticker -> quantity
         self.trade_cost = transaction_cost  # 0.1% transaction cost
-        self.value_history = {}  # to track portfolio value over time
+        self.value_history = pd.Series()  # to track portfolio value over time
 
     def tickers_list(self):
         return list(self.holdings.keys()) # maybe more efficient to store list of tickers, add and remove as needed
@@ -52,3 +53,18 @@ class Portfolio():
             print(f"Bought {quantity} of {ticker} at {curr_price}. New cash balance: {self.cash}")
         else:
             print(f"Not enough cash to buy {quantity} of {ticker} at {curr_price}")
+
+    # metrics
+
+    def cagr(self):
+        if self.value_history.empty:
+            print("No value history to calculate CAGR.")
+            return None
+        elif len(self.value_history) < 2:
+            print("Not enough data points in value history to calculate CAGR.")
+            return None
+        start_date, end_date = self.value_history.index[0], self.value_history.index[-1]
+        # print(start_date, end_date)
+        start_value, end_value = self.value_history.iloc[0], self.value_history.iloc[-1]
+        num_years = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days / 365.25
+        return (end_value / start_value) ** (1 / num_years) - 1
