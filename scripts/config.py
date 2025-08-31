@@ -9,7 +9,7 @@ TICKERS = [
     # Industrials
     "BA", "CAT",
     # Consumer
-    "PG", "KO", "DIS", "MCD",
+    "PG", "KO", "DIS", "MCD", "PEP",
     # Energy
     "XOM", "CVX"
 ]
