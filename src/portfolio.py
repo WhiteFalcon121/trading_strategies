@@ -19,17 +19,20 @@ class Portfolio():
     def __init__(self, initial_cash: int, transaction_cost: float):
         self.cash = initial_cash
         self.holdings = defaultdict(int)  # ticker -> quantity
+        self.shortings = defaultdict(int) # tracks tickers currently shorted
         self.trade_cost = transaction_cost  # 0.1% transaction cost
         self.value_history = pd.Series()  # to track portfolio value over time
 
-    def tickers_list(self):
+    def tickers_list(self): # CHANGE THIS LATER since have shortings too now
         return list(self.holdings.keys()) # maybe more efficient to store list of tickers, add and remove as needed
 
     def get_current_value(self, prices: dict):
         total_value = self.cash
         for ticker, quantity in self.holdings.items():
-            if ticker in prices:
+            if ticker in prices: # will be but ####
                 total_value += prices[ticker] * quantity # uses current price (as of latest date)
+        for ticker, quantity in self.shortings.items():
+            total_value -= prices[ticker] * quantity
         return total_value
 
     def save_value(self, date: str, prices: dict):
@@ -54,6 +57,14 @@ class Portfolio():
             print(f"Bought {quantity} of {ticker} at {curr_price}. New cash balance: {self.cash}")
         else:
             print(f"Not enough cash to buy {quantity} of {ticker} at {curr_price}")
+
+    def short(self, ticker: str, curr_price: float, quantity: int):
+        self.cash += curr_price * quantity
+        self.shortings[ticker] += quantity
+
+    def cover(self, ticker: str, curr_price: float, quantity: int):
+        self.shortings[ticker] -= quantity
+        self.cash -= curr_price * quantity
 
     # metrics
 

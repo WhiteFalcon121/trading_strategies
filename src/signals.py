@@ -1,7 +1,10 @@
 import pandas as pd
 from src.portfolio import Portfolio
 from scripts.config import DAYS_12M, DAYS_3M, DAYS_1M
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import coint, adfuller
 
+# CHANGE portfolio to pf (parameter)
 def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_freq: int) -> None:
     '''
     Implements relative momentum strategy.
@@ -97,3 +100,69 @@ def momentum_strategy(prices: pd.DataFrame, portfolio: Portfolio, rebalance_freq
 
         # save portfolio value
         portfolio.save_value(next_day, prices.loc[next_day].to_dict())
+
+def pairs_strategy(prices: pd.DataFrame, portfolio: Portfolio, ticker_A: str, ticker_B: str) -> None:
+    price_window = prices[[ticker_A, ticker_B]].loc['2017-01-03':'2017-04-28']
+    # ticker_A, ticker_B = 'XOM', 'CVX' # pair chosen
+    prices_A, prices_B = price_window[ticker_A], price_window[ticker_B] # just price levels
+
+    # if linear combination of 2 price levels is stationary, likely good candidates
+    # so cointegration test, p-value < 0.05 typically indicates cointegration
+    _, coint_p_value, _ = coint(prices_A, prices_B)
+    print(f'Cointegration test p-value: {coint_p_value}')
+    if coint_p_value >= 0.05:
+        print("Pair not likely to be good fit - aborted strategy.")
+        return
+    
+    X = sm.add_constant(prices_B) # add column of 1s for intercept
+    model = sm.OLS(prices_A, X).fit() # ordinary least squares regression
+    alpha, beta = model.params
+    print(f'Alpha: {alpha}, Beta: {beta}')
+
+    trade_window = prices[[ticker_A, ticker_B]].loc['2018-11-01': '2019-04-30'] # using different timeframe to test strategy
+    spread = trade_window[ticker_A] - alpha - beta * trade_window[ticker_B] # rearranging formula to make residual (the spread) the subject
+
+    # adf_result = adfuller(spread)
+    # adf_p_value = adf_result[1]
+    # print(f"adfuller p-value: {adf_p_value}")
+    # if adf_p_value >= 0.05:
+    #     print("Spread likely not mean reverting.")
+    #     return
+
+    z_scores: pd.Series = (spread - spread.mean()) / spread.std()    
+    dates = trade_window.index
+
+    for date in dates:
+        price_A = trade_window.loc[date][ticker_A]
+        price_B = trade_window.loc[date][ticker_B]
+        # CHANGE ACTIONS TO NEXT DAY PRICES LATER
+        z_score = z_scores[date]
+        if z_score > 2:
+            print(f"{date}: Short A, Long B")
+            quantity_A = portfolio.cash // (price_A + abs(beta) * price_B)
+            quantity_B = abs(beta) * quantity_A # else make it 0
+            portfolio.short(ticker_A, price_A, quantity_A)
+            portfolio.buy(ticker_B, price_B, quantity_B)
+        elif z_score < -2:
+            print(f"Day {date}: Long A, Short B")
+            quantity_A = abs(beta) * quantity_B # else make it 0
+            quantity_B = portfolio.cash // (price_B + abs(beta) * price_A)
+            portfolio.buy(ticker_A, price_A, quantity_A)
+            portfolio.short(ticker_B, price_B, quantity_B)
+        elif z_score < 0.5:
+            print(f"Day {date}: Close positions")
+            if portfolio.shortings[ticker_A] > 0:
+                portfolio.cover(ticker_A, price_A, portfolio.shortings[ticker_A])
+            elif portfolio.holdings[ticker_A] > 0:
+                portfolio.sell(ticker_A, price_A, portfolio.holdings[ticker_A])
+
+            if portfolio.shortings[ticker_B] > 0:
+                portfolio.cover(ticker_B, price_B, portfolio.shortings[ticker_B])
+            elif portfolio.holdings[ticker_B] > 0:
+                portfolio.sell(ticker_B, price_B, portfolio.holdings[ticker_B])
+        else:
+            print(f"Day {date}: Hold positions")
+            continue
+
+        portfolio.save_value(date, prices.loc[date].to_dict())
+    
