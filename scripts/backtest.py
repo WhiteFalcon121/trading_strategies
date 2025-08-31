@@ -16,7 +16,7 @@ def run_backtest(prices: pd.DataFrame):
     # print(f"CAGR: {portfolio.cagr()}")
     # print(f"Volatility: {portfolio.volatility()}")
     # print(f"Sharpe: {portfolio.sharpe()}")
-    portfolio_stats = pd.Series([portfolio.cagr(), portfolio.volatility(), portfolio.sharpe()], index=['CAGR', 'Volatility', 'Sharpe'])
+    portfolio_stats = pd.Series([portfolio.cagr(), portfolio.volatility(), portfolio.sharpe(), portfolio.max_drawdown()], index=['CAGR', 'Volatility', 'Sharpe', 'Max Drawdown'])
     portfolio_stats.to_csv('results/portfolio_stats.csv')
     portfolio.value_history.plot(title="Portfolio Value Over Time")
     portfolio.value_history.to_csv('data/processed/portfolio_value_history.csv')

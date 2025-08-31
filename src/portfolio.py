@@ -88,3 +88,10 @@ class Portfolio():
             excess_return = returns.mean() * (DAYS_12M/DAYS_1M) - risk_free_rate
             return excess_return / vol
         
+    def max_drawdown(self):
+        if self.value_history.empty:
+            print("No value history to calculate max drawdown.")
+            return None
+        rolling_max = self.value_history.cummax()
+        drawdowns = (self.value_history - rolling_max) / rolling_max
+        return drawdowns.min()
