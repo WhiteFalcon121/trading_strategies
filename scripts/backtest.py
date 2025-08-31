@@ -4,13 +4,11 @@ import pandas as pd
 from scripts.config import DAYS_1M
 import matplotlib.pyplot as plt
 
-def run_backtest():
+def run_backtest(prices: pd.DataFrame):
     initial_cash = 100000  # Starting with $100,000
     transaction_cost = 0.001  # 0.1% transaction cost
     slippage = 0.001  # 0.1% slippage
     portfolio = Portfolio(initial_cash, transaction_cost + slippage)
-    prices = pd.read_csv('data/raw/stock_data.csv')
-    prices.set_index('Date', inplace=True)
 
     momentum_strategy(prices, portfolio, DAYS_1M)
     print("\n")
