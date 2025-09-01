@@ -10,8 +10,8 @@ def run_backtest(prices: pd.DataFrame):
     slippage = 0.001  # 0.1% slippage
     portfolio = Portfolio(initial_cash, transaction_cost + slippage)
 
-    # momentum_strategy(prices, portfolio, DAYS_1M)
-    pairs_strategy(prices, portfolio, 'XOM', 'CVX')
+    momentum_strategy(prices, portfolio, DAYS_1M)
+    # pairs_strategy(prices, portfolio, 'XOM', 'CVX')
     print("\n")
     print(f"Final portfolio value: {portfolio.get_current_value(prices.iloc[-1].to_dict())}")
     # print(f"CAGR: {portfolio.cagr()}")

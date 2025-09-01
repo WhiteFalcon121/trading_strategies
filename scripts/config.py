@@ -1,18 +1,28 @@
 # Universe of tickers
+# TICKERS = [
+#     # Tech
+#     "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA",
+#     # Financials
+#     "JPM", "BAC", "GS",
+#     # Healthcare
+#     "JNJ", "PFE", "UNH",
+#     # Industrials
+#     "BA", "CAT",
+#     # Consumer
+#     "PG", "KO", "DIS", "MCD", "PEP",
+#     # Energy
+#     "XOM", "CVX"
+# ]
+
 TICKERS = [
-    # Tech
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA",
-    # Financials
-    "JPM", "BAC", "GS",
-    # Healthcare
-    "JNJ", "PFE", "UNH",
-    # Industrials
-    "BA", "CAT",
-    # Consumer
-    "PG", "KO", "DIS", "MCD", "PEP",
-    # Energy
-    "XOM", "CVX"
+    "AAPL", "ABBV", "ABT", "ACN", "ADBE", "AIG", "AMD", "AMGN", "AMZN", "AXP",
+    "BA", "BAC", "BK", "C", "CAT", "CL", "COST", "COP", "CRM",
+    "CSCO", "CVX", "DIS", "GOOG", "GOOGL", "GS", "HD", "HON", "IBM", "INTC",
+    "JNJ", "JPM", "KO", "LIN", "LLY", "MA", "MCD", "MMM", "MSFT", "NEE", "NFLX",
+    "NKE", "ORCL", "PEP", "PFE", "PG", "RTX", "SBUX", "T", "TMUS", "TSLA",
+    "TXN", "UNH", "UNP", "V", "VZ", "WFC", "WMT", "XOM"
 ]
+
 
 # Data parameters
 DATA_START_DATE = '2015-01-01'
